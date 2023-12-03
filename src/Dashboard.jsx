@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
-const PAGE_SIZE = 10; // Number of rows per page
+const PAGE_SIZE = 10;
 
-const UserTable = ({ users, setUsers }) => {
+const Dashboard = ({ users, setUsers }) => {
   const [selectedUsers, setSelectedUsers] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [editUserId, setEditUserId] = useState(null);
@@ -13,13 +13,12 @@ const UserTable = ({ users, setUsers }) => {
     role: "",
   });
 
-  // Function to handle search input changes
+  // Search functionality
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
-    setCurrentPage(1); // Reset to the first page with new search
+    setCurrentPage(1);
   };
 
-  // Function to filter users based on the search query
   const filteredUsers = searchQuery
     ? users.filter(
         (user) =>
@@ -29,12 +28,20 @@ const UserTable = ({ users, setUsers }) => {
       )
     : users;
 
+  // Pagination functionality
   const pageCount = Math.ceil(filteredUsers.length / PAGE_SIZE);
   const usersOnPage = filteredUsers.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
 
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageCount) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  // Edit functionality
   const handleEditFormChange = (event) => {
     const { name, value } = event.target;
     setEditFormData({ ...editFormData, [name]: value });
@@ -54,19 +61,6 @@ const UserTable = ({ users, setUsers }) => {
     setEditUserId(null);
   };
 
-  const toggleSelectAll = (checked) => {
-    const usersToToggle = usersOnPage.map((user) => user.id);
-    setSelectedUsers(
-      checked
-        ? new Set([...selectedUsers, ...usersToToggle])
-        : new Set(
-            Array.from(selectedUsers).filter(
-              (id) => !usersToToggle.includes(id)
-            )
-          )
-    );
-  };
-
   const handleSaveClick = () => {
     const editedUsers = users.map((user) =>
       user.id === editUserId ? { ...user, ...editFormData } : user
@@ -83,20 +77,29 @@ const UserTable = ({ users, setUsers }) => {
     );
   };
 
+  // Bulk delete functionality
+  const toggleSelectAll = (checked) => {
+    const usersToToggle = usersOnPage.map((user) => user.id);
+    setSelectedUsers(
+      checked
+        ? new Set([...selectedUsers, ...usersToToggle])
+        : new Set(
+            Array.from(selectedUsers).filter(
+              (id) => !usersToToggle.includes(id)
+            )
+          )
+    );
+  };
+
   const handleBulkDeleteClick = () => {
     const updatedUsers = users.filter((user) => !selectedUsers.has(user.id));
     setUsers(updatedUsers);
-    setSelectedUsers(new Set()); // Clear selection
-  };
-
-  const changePage = (newPage) => {
-    if (newPage >= 1 && newPage <= pageCount) {
-      setCurrentPage(newPage);
-    }
+    setSelectedUsers(new Set());
   };
 
   return (
     <div>
+      {/* Search and Delete Selected */}
       <div>
         <input
           type="text"
@@ -112,9 +115,9 @@ const UserTable = ({ users, setUsers }) => {
           Delete Selected
         </button>
       </div>
-      {/* Table */}
+      {/* Dashboard */}
       <table>
-        {/* Table Head */}
+        {/* Head */}
         <thead>
           <tr>
             <th>
@@ -124,7 +127,6 @@ const UserTable = ({ users, setUsers }) => {
                 checked={usersOnPage.every((user) =>
                   selectedUsers.has(user.id)
                 )}
-                // This will make the checkbox indeterminate if some but not all users on the page are selected
                 ref={(input) => {
                   if (input) {
                     input.indeterminate =
@@ -141,7 +143,7 @@ const UserTable = ({ users, setUsers }) => {
           </tr>
         </thead>
 
-        {/* Table Body */}
+        {/* Body */}
         <tbody>
           {usersOnPage.map((user) => (
             <tr
@@ -260,4 +262,4 @@ const UserTable = ({ users, setUsers }) => {
   );
 };
 
-export default UserTable;
+export default Dashboard;

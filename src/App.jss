@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import UserTable from "./components/UserTable";
+import Dashboard from "./Dashboard";
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -26,7 +26,7 @@ function App() {
 
   return (
     <div className="App">
-      <UserTable users={users} setUsers={setUsers} />
+      <Dashboard users={users} setUsers={setUsers} />
     </div>
   );
 }
