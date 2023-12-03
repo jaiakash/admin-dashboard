@@ -26,9 +26,7 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <UserTable users={users} setUsers={setUsers} />
-      </header>
+      <UserTable users={users} setUsers={setUsers} />
     </div>
   );
 }

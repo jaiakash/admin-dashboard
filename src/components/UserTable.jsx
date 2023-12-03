@@ -6,14 +6,31 @@ const UserTable = ({ users, setUsers }) => {
   const [selectedUsers, setSelectedUsers] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [editUserId, setEditUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [editFormData, setEditFormData] = useState({
     name: "",
     email: "",
     role: "",
   });
 
-  const pageCount = Math.ceil(users.length / PAGE_SIZE);
-  const usersOnPage = users.slice(
+  // Function to handle search input changes
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value.toLowerCase());
+    setCurrentPage(1); // Reset to the first page with new search
+  };
+
+  // Function to filter users based on the search query
+  const filteredUsers = searchQuery
+    ? users.filter(
+        (user) =>
+          user.name.toLowerCase().includes(searchQuery) ||
+          user.email.toLowerCase().includes(searchQuery) ||
+          user.role.toLowerCase().includes(searchQuery)
+      )
+    : users;
+
+  const pageCount = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const usersOnPage = filteredUsers.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
@@ -35,6 +52,19 @@ const UserTable = ({ users, setUsers }) => {
 
   const handleCancelClick = () => {
     setEditUserId(null);
+  };
+
+  const toggleSelectAll = (checked) => {
+    const usersToToggle = usersOnPage.map((user) => user.id);
+    setSelectedUsers(
+      checked
+        ? new Set([...selectedUsers, ...usersToToggle])
+        : new Set(
+            Array.from(selectedUsers).filter(
+              (id) => !usersToToggle.includes(id)
+            )
+          )
+    );
   };
 
   const handleSaveClick = () => {
@@ -67,6 +97,21 @@ const UserTable = ({ users, setUsers }) => {
 
   return (
     <div>
+      <div>
+        <input
+          type="text"
+          placeholder="🔍 Search..."
+          className="search-bar"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+        <button
+          onClick={handleBulkDeleteClick}
+          className="delete-selected-button"
+        >
+          Delete Selected
+        </button>
+      </div>
       {/* Table */}
       <table>
         {/* Table Head */}
@@ -75,16 +120,18 @@ const UserTable = ({ users, setUsers }) => {
             <th>
               <input
                 type="checkbox"
-                onChange={(e) =>
-                  setSelectedUsers(
-                    e.target.checked
-                      ? new Set(users.map((user) => user.id))
-                      : new Set()
-                  )
-                }
-                checked={
-                  users.length > 0 && selectedUsers.size === users.length
-                }
+                onChange={(e) => toggleSelectAll(e.target.checked)}
+                checked={usersOnPage.every((user) =>
+                  selectedUsers.has(user.id)
+                )}
+                // This will make the checkbox indeterminate if some but not all users on the page are selected
+                ref={(input) => {
+                  if (input) {
+                    input.indeterminate =
+                      usersOnPage.some((user) => selectedUsers.has(user.id)) &&
+                      !usersOnPage.every((user) => selectedUsers.has(user.id));
+                  }
+                }}
               />
             </th>
             <th>Name</th>
@@ -209,9 +256,6 @@ const UserTable = ({ users, setUsers }) => {
           Last
         </button>
       </div>
-
-      {/* Bulk Delete Button */}
-      <button onClick={handleBulkDeleteClick}>Delete Selected</button>
     </div>
   );
 };
